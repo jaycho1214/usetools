@@ -4,8 +4,8 @@ import { useNotepadStore } from "../store";
 import { useIsMac, useKeyboardShortcuts } from "./keyboard-shortcuts";
 import { Button } from "@/components/ui/button";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
-import { Plus, X } from "lucide-react";
-import { useRef } from "react";
+import { Keyboard, Plus, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -15,6 +15,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useStoreHydration } from "@/hooks/use-store-hydration";
 import { FullscreenLoading } from "@/components/fullscreen-loading";
+import { ShortcutsDialog } from "./shortcuts-dialog";
 
 export default function NotepadContent() {
   const {
@@ -29,9 +30,30 @@ export default function NotepadContent() {
 
   const isMac = useIsMac();
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const titleInputRef = useRef<HTMLInputElement | null>(null);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const prevActiveTabIdRef = useRef<string | null>(activeTabId);
 
-  useKeyboardShortcuts(textareaRef);
+  useKeyboardShortcuts(textareaRef, titleInputRef);
   const rehydrated = useStoreHydration(useNotepadStore);
+
+  // Auto-delete empty tabs when switching
+  useEffect(() => {
+    const prevTabId = prevActiveTabIdRef.current;
+    const currentTabId = activeTabId;
+
+    // If we switched tabs and there was a previous tab
+    if (prevTabId && prevTabId !== currentTabId && tabs[prevTabId]) {
+      const prevTab = tabs[prevTabId];
+      // Check if previous tab's content is empty (title doesn't matter)
+      if (prevTab.content.trim() === "") {
+        deleteTab(prevTabId);
+      }
+    }
+
+    // Update ref to current tab
+    prevActiveTabIdRef.current = currentTabId;
+  }, [activeTabId, tabs, deleteTab]);
 
   if (!rehydrated) {
     return <FullscreenLoading />;
@@ -53,25 +75,6 @@ export default function NotepadContent() {
         >
           UseTiny
         </Link>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="icon"
-              variant="outline"
-              onClick={createTab}
-              className="h-7 w-7 relative group"
-            >
-              <Plus className="h-3.5 w-3.5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <KbdGroup>
-              <Kbd>{isMac ? "⌘" : "Ctrl+"}</Kbd>
-              <span>+</span>
-              <Kbd>K</Kbd>
-            </KbdGroup>
-          </TooltipContent>
-        </Tooltip>
         <div className="flex-1 flex items-center gap-1 overflow-x-auto">
           {orderedTabs.map((tab, index) => (
             <div
@@ -85,11 +88,19 @@ export default function NotepadContent() {
               onClick={() => setActiveTab(tab.id)}
             >
               <input
+                ref={tab.id === activeTabId ? titleInputRef : null}
                 value={tab.title}
                 maxLength={100}
                 onChange={(e) => {
                   e.stopPropagation();
                   updateTab(tab.id, { title: e.target.value });
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    textareaRef.current?.focus();
+                  }
                 }}
                 className="bg-transparent outline-none w-20 text-sm"
                 placeholder="Untitled"
@@ -112,6 +123,38 @@ export default function NotepadContent() {
             </div>
           ))}
         </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={() => setShowShortcuts(true)}
+              className="h-7 w-7"
+            >
+              <Keyboard className="h-3.5 w-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Keyboard shortcuts</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={createTab}
+              className="h-7 w-7"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <KbdGroup>
+              <Kbd>{isMac ? "⌘" : "Ctrl+"}</Kbd>
+              <span>+</span>
+              <Kbd>K</Kbd>
+            </KbdGroup>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Textarea */}
@@ -131,6 +174,12 @@ export default function NotepadContent() {
           autoFocus
         />
       )}
+
+      <ShortcutsDialog
+        open={showShortcuts}
+        onOpenChange={setShowShortcuts}
+        isMac={isMac}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useNotepadStore } from "../store";
 
 export function useKeyboardShortcuts(
   textareaRef: React.RefObject<HTMLTextAreaElement | null>,
+  titleInputRef: React.RefObject<HTMLInputElement | null>,
 ) {
   const createTab = useNotepadStore((state) => state.createTab);
   const setActiveTab = useNotepadStore((state) => state.setActiveTab);
@@ -30,13 +31,50 @@ export function useKeyboardShortcuts(
           setActiveTab(orderedTabs[index].id);
         }
       }
+      // Navigate to next tab with Cmd/Ctrl + .
+      if ((e.metaKey || e.ctrlKey) && e.key === ".") {
+        e.preventDefault();
+        const state = useNotepadStore.getState();
+        const orderedTabs = state.tabOrder
+          .map((id) => state.tabs[id])
+          .filter(Boolean);
+        const currentIndex = orderedTabs.findIndex(
+          (tab) => tab.id === state.activeTabId,
+        );
+        const nextIndex = (currentIndex + 1) % orderedTabs.length;
+        if (orderedTabs[nextIndex]) {
+          setActiveTab(orderedTabs[nextIndex].id);
+        }
+      }
+      // Navigate to previous tab with Cmd/Ctrl + ,
+      if ((e.metaKey || e.ctrlKey) && e.key === ",") {
+        e.preventDefault();
+        const state = useNotepadStore.getState();
+        const orderedTabs = state.tabOrder
+          .map((id) => state.tabs[id])
+          .filter(Boolean);
+        const currentIndex = orderedTabs.findIndex(
+          (tab) => tab.id === state.activeTabId,
+        );
+        const prevIndex =
+          currentIndex - 1 < 0 ? orderedTabs.length - 1 : currentIndex - 1;
+        if (orderedTabs[prevIndex]) {
+          setActiveTab(orderedTabs[prevIndex].id);
+        }
+      }
+      // Focus tab title with F2
+      if (e.key === "F2") {
+        e.preventDefault();
+        titleInputRef.current?.focus();
+        titleInputRef.current?.select();
+      }
       // Focus textarea with /
       if (e.key === "/" && document.activeElement !== textareaRef.current) {
         e.preventDefault();
         textareaRef.current?.focus();
       }
     },
-    [createTab, setActiveTab, textareaRef],
+    [createTab, setActiveTab, textareaRef, titleInputRef],
   );
 
   useEffect(() => {
