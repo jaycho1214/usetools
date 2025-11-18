@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/tooltip";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { useHydrationStoreStatus } from "@/hooks/use-hydration";
+import { useStoreHydration } from "@/hooks/use-store-hydration";
 import { FullscreenLoading } from "@/components/fullscreen-loading";
 
 export default function NotepadContent() {
@@ -25,16 +25,13 @@ export default function NotepadContent() {
     deleteTab,
     updateTab,
     setActiveTab,
-  } = useNotepadStore((state) => ({
-    ...state,
-    activeTab: state.tabs[state.activeTabId] || state.tabs[0],
-  }));
+  } = useNotepadStore();
 
   const isMac = useIsMac();
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useKeyboardShortcuts(textareaRef);
-  const rehydrated = useHydrationStoreStatus(useNotepadStore);
+  const rehydrated = useStoreHydration(useNotepadStore);
 
   if (!rehydrated) {
     return <FullscreenLoading />;

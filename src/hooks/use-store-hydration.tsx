@@ -27,14 +27,14 @@ type StorePersist<S, Ps, Pr> = S extends {
   : never;
 type WithPersist<S, A> = Write<S, StorePersist<S, A, unknown>>;
 
-export function useHydrationStoreStatus<T>(
+export function useStoreHydration<T>(
   store: UseBoundStore<WithPersist<StoreApi<T>, T>>,
 ) {
   const [hydrated, setHydrated] = useState(false);
   useLayoutEffect(() => {
-    Promise.resolve(store.persist.rehydrate).finally(() => {
+    Promise.resolve(store.persist.rehydrate()).finally(() => {
       setHydrated(true);
     });
-  }, []);
+  }, [store]);
   return hydrated;
 }
