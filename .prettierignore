@@ -1,0 +1,16 @@
+# Auto-generated files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# shadcn/ui generated components
+src/components/ui/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Dependencies
+node_modules/
