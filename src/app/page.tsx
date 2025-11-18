@@ -13,6 +13,7 @@ import {
 import { Kbd } from "@/components/ui/kbd";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { FeedbackDialog } from "@/components/feedback-dialog";
 
 export default function Home() {
   const [open, setOpen] = useState(false);
@@ -42,8 +43,9 @@ export default function Home() {
 
   return (
     <div className="w-full min-h-dvh flex flex-col relative">
-      {/* Theme Toggle */}
-      <div className="absolute top-4 right-4">
+      {/* Theme Toggle and Feedback */}
+      <div className="absolute top-4 right-4 flex gap-2">
+        <FeedbackDialog />
         <ThemeToggle />
       </div>
       {/* Main Content */}
