@@ -4,7 +4,7 @@ import { useNotepadStore } from "../store";
 import { useIsMac, useKeyboardShortcuts } from "./keyboard-shortcuts";
 import { Button } from "@/components/ui/button";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
-import { Keyboard, Plus, X } from "lucide-react";
+import { Keyboard, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
   Tooltip,
@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { useStoreHydration } from "@/hooks/use-store-hydration";
 import { FullscreenLoading } from "@/components/fullscreen-loading";
 import { ShortcutsDialog } from "./shortcuts-dialog";
+import { TabTitleInput } from "./tab-title-input";
 
 export default function NotepadContent() {
   const {
@@ -83,43 +84,21 @@ export default function NotepadContent() {
                 "h-7 px-2 gap-1.5 relative inline-flex items-center rounded-md text-sm font-medium transition-colors cursor-pointer",
                 tab.id === activeTabId
                   ? "bg-secondary text-secondary-foreground"
-                  : "hover:bg-accent hover:text-accent-foreground",
+                  : "hover:bg-accent hover:text-accent-foreground"
               )}
               onClick={() => setActiveTab(tab.id)}
             >
-              <input
-                ref={tab.id === activeTabId ? titleInputRef : null}
-                value={tab.title}
-                maxLength={100}
-                onChange={(e) => {
-                  e.stopPropagation();
-                  updateTab(tab.id, { title: e.target.value });
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    textareaRef.current?.focus();
-                  }
-                }}
-                className="bg-transparent outline-none w-20 text-sm"
-                placeholder="Untitled"
+              <TabTitleInput
+                tabId={tab.id}
+                title={tab.title}
+                index={index}
+                isActive={tab.id === activeTabId}
+                isMac={isMac}
+                titleInputRef={titleInputRef}
+                textareaRef={textareaRef}
+                onTitleChange={(id, title) => updateTab(id, { title })}
+                onDelete={deleteTab}
               />
-              {index < 9 && (
-                <Kbd className="text-[10px] px-1 py-0">
-                  {isMac ? "⌘" : "Ctrl+"}
-                  {index + 1}
-                </Kbd>
-              )}
-              <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteTab(tab.id);
-                }}
-                className="hover:bg-destructive/20 rounded p-0.5 -mr-1 cursor-pointer"
-              >
-                <X className="h-3 w-3" />
-              </div>
             </div>
           ))}
         </div>
