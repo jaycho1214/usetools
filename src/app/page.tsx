@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
-import { NotepadText } from "lucide-react";
+import { NotepadText, QrCode } from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -93,6 +93,13 @@ export default function Home() {
                   >
                     <NotepadText />
                     <span>Notepad</span>
+                  </CommandItem>
+                  <CommandItem
+                    keywords={["qr", "qrcode", "barcode", "generator"]}
+                    onSelect={() => router.push("/qr")}
+                  >
+                    <QrCode />
+                    <span>QR Generator</span>
                   </CommandItem>
                 </CommandGroup>
               </CommandList>
